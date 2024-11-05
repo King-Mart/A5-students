@@ -1,6 +1,6 @@
 import random
 
-def create_network(file_name : str) -> list[tuple[int, list]]:
+def create_network(file_name : str) -> list[tuple[int, list[int]]]:
     '''(str)->list of tuples where each tuple has 2 elements the first is int and the second is list of int
 
     Precondition: file_name has data on social netowrk. In particular:
@@ -11,17 +11,28 @@ def create_network(file_name : str) -> list[tuple[int, list]]:
     For example, if 7 and 50 are friends there is a line in the file with 7 50 entry, but there is line 50 7.
     There is no user without a friend
     Users sorted by ID, friends of each user are sorted by ID
-    Returns the 2D list representing the frendship nework as described above
+    Returns the 2D list representing the friendship nework as described above
     where the network is sorted by the ID and each list of int (in a tuple) is sorted (i.e. each list of friens is sorted).
     '''
-    friends = open(file_name).read().splitlines()
+    friends = (x.split() for x in open(file_name).read().splitlines())
     network=[]
 
     # YOUR CODE GOES HERE
+    network_lenght = friends.__next__()
+    current_user = -1
+    current_friends = []
+    for connection in friends:
+        #If the user changed then update the current user variable, I am not sure if this variable is usefull
+        if int(connection[0]) > current_user:
+            current_user = connection[0]
+        current_friends.append(connection[1])
+        
+        
+
     
     return network
 
-def getCommonFriends(user1 : int, user2 : int, network : list[tuple[int, list]]) -> list:
+def getCommonFriends(user1 : int, user2 : int, network : list[tuple[int, list[int]]]) -> list:
     '''(int, int, 2D list) ->list
     Precondition: user1 and user2 IDs in the network. 2D list sorted by the IDs, 
     and friends of user 1 and user 2 sorted 
@@ -34,7 +45,7 @@ def getCommonFriends(user1 : int, user2 : int, network : list[tuple[int, list]])
     return common
 
     
-def recommend(user, network : list[tuple[int, list]]) -> int | None:
+def recommend(user, network : list[tuple[int, list[int]]]) -> int | None:
     '''(int, 2Dlist)->int or None
     Given a 2D-list for friendship network, returns None if there is no other person
     who has at least one neighbour in common with the given user and who the user does
@@ -51,7 +62,7 @@ def recommend(user, network : list[tuple[int, list]]) -> int | None:
     
 
 
-def k_or_more_friends(network : list[tuple[int, list]], k : int) -> int:
+def k_or_more_friends(network : list[tuple[int, list[int]]], k : int) -> int:
     '''(2Dlist,int)->int
     Given a 2D-list for friendship network and non-negative integer k,
     returns the number of users who have at least k friends in the network
@@ -60,7 +71,7 @@ def k_or_more_friends(network : list[tuple[int, list]], k : int) -> int:
     pass
  
 
-def maximum_num_friends(network : list[tuple[int, list]]) -> int:
+def maximum_num_friends(network : list[tuple[int, list[int]]]) -> int:
     '''(2Dlist)->int
     Given a 2D-list for friendship network,
     returns the maximum number of friends any user in the network has.
@@ -69,7 +80,7 @@ def maximum_num_friends(network : list[tuple[int, list]]) -> int:
     pass
     
 
-def people_with_most_friends(network : list[tuple[int, list]]) -> list[int]:
+def people_with_most_friends(network : list[tuple[int, list[int]]]) -> list[int]:
     '''(2Dlist)->1D list
     Given a 2D-list for friendship network, returns a list of people (IDs) who have the most friends in network.'''
     max_friends=[]
@@ -77,7 +88,7 @@ def people_with_most_friends(network : list[tuple[int, list]]) -> list[int]:
     return    max_friends
 
 
-def average_num_friends(network : list[tuple[int, list]]) -> float:
+def average_num_friends(network : list[tuple[int, list[int]]]) -> float:
     '''(2Dlist)->number
     Returns an average number of friends overs all users in the network'''
 
@@ -85,7 +96,7 @@ def average_num_friends(network : list[tuple[int, list]]) -> float:
     pass
     
 
-def knows_everyone(network : list[tuple[int, list]]) ->bool:
+def knows_everyone(network : list[tuple[int, list[int]]]) ->bool:
     '''(2Dlist)->bool
     Given a 2D-list for friendship network,
     returns True if there is a user in the network who knows everyone
@@ -120,7 +131,7 @@ def get_file_name() -> str:
     return file_name
 
 
-def get_uid(network : list[tuple[int, list]]) -> int:
+def get_uid(network : list[tuple[int, list[int]]]) -> int:
     '''(2Dlist)->int
     Keeps on asking for a user ID that exists in the network
     until it succeeds. Then it returns it'''
@@ -151,7 +162,7 @@ for item in mf:
 
 print("\n\nI now pick a number at random.", end=" ")
 k=random.randint(0,len(net)//4)
-print("\nThat number is: "+str(k)+". Let's see how many people has that many friends.")
+print("\nThat number is: "+str(k)+". Let's see how many people has at least that many friends.")
 print("There is", k_or_more_friends(net,k), "people with", k, "or more friends")
 
 if knows_everyone(net):
@@ -181,3 +192,4 @@ for item in common:
     print(item, end=" ")
 
     
+create_network(file_name)
