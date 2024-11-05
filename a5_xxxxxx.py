@@ -1,6 +1,6 @@
 import random
 
-def create_network(file_name):
+def create_network(file_name : str) -> list[tuple[int, list]]:
     '''(str)->list of tuples where each tuple has 2 elements the first is int and the second is list of int
 
     Precondition: file_name has data on social netowrk. In particular:
@@ -21,7 +21,7 @@ def create_network(file_name):
     
     return network
 
-def getCommonFriends(user1, user2, network):
+def getCommonFriends(user1 : int, user2 : int, network : list[tuple[int, list]]) -> list:
     '''(int, int, 2D list) ->list
     Precondition: user1 and user2 IDs in the network. 2D list sorted by the IDs, 
     and friends of user 1 and user 2 sorted 
@@ -34,7 +34,7 @@ def getCommonFriends(user1, user2, network):
     return common
 
     
-def recommend(user, network):
+def recommend(user, network : list[tuple[int, list]]) -> int | None:
     '''(int, 2Dlist)->int or None
     Given a 2D-list for friendship network, returns None if there is no other person
     who has at least one neighbour in common with the given user and who the user does
@@ -51,7 +51,7 @@ def recommend(user, network):
     
 
 
-def k_or_more_friends(network, k):
+def k_or_more_friends(network : list[tuple[int, list]], k : int) -> int:
     '''(2Dlist,int)->int
     Given a 2D-list for friendship network and non-negative integer k,
     returns the number of users who have at least k friends in the network
@@ -60,7 +60,7 @@ def k_or_more_friends(network, k):
     pass
  
 
-def maximum_num_friends(network):
+def maximum_num_friends(network : list[tuple[int, list]]) -> int:
     '''(2Dlist)->int
     Given a 2D-list for friendship network,
     returns the maximum number of friends any user in the network has.
@@ -69,7 +69,7 @@ def maximum_num_friends(network):
     pass
     
 
-def people_with_most_friends(network):
+def people_with_most_friends(network : list[tuple[int, list]]) -> list[int]:
     '''(2Dlist)->1D list
     Given a 2D-list for friendship network, returns a list of people (IDs) who have the most friends in network.'''
     max_friends=[]
@@ -77,7 +77,7 @@ def people_with_most_friends(network):
     return    max_friends
 
 
-def average_num_friends(network):
+def average_num_friends(network : list[tuple[int, list]]) -> float:
     '''(2Dlist)->number
     Returns an average number of friends overs all users in the network'''
 
@@ -85,7 +85,7 @@ def average_num_friends(network):
     pass
     
 
-def knows_everyone(network):
+def knows_everyone(network : list[tuple[int, list]]) ->bool:
     '''(2Dlist)->bool
     Given a 2D-list for friendship network,
     returns True if there is a user in the network who knows everyone
@@ -97,7 +97,7 @@ def knows_everyone(network):
 
 ####### CHATTING WITH USER CODE:
 
-def is_valid_file_name():
+def is_valid_file_name() -> None | str:
     '''None->str or None'''
     file_name = None
     try:
@@ -109,7 +109,7 @@ def is_valid_file_name():
         file_name=None
     return file_name 
 
-def get_file_name():
+def get_file_name() -> str:
     '''()->str
     Keeps on asking for a file name that exists in the current folder,
     until it succeeds in getting a valid file name.
@@ -120,7 +120,7 @@ def get_file_name():
     return file_name
 
 
-def get_uid(network):
+def get_uid(network : list[tuple[int, list]]) -> int:
     '''(2Dlist)->int
     Keeps on asking for a user ID that exists in the network
     until it succeeds. Then it returns it'''
