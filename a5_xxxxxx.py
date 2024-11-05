@@ -1,4 +1,63 @@
 import random
+def test(function, expected_result, *inputs):
+    result = function(*inputs)
+    print(result, expected_result, sep='\n\n\n')
+    return result == expected_result
+
+def get_first_element(iterable):
+    return iterable[1]
+
+def deep_b_search(left_index : int, right_index : int, iterable, target, key):
+    if not iterable[left_index:right_index]:
+        #If we come to a point that there's no more options available:
+        if iterable:
+            left_index -= 1
+        return left_index
+    middle =  ((right_index - left_index) //2) + left_index
+    # if key == None:
+    #     def key(value):
+    #         return int(value)
+    middle_value = key(iterable[middle]) 
+    if middle_value == target:
+        while middle_value == target and middle < right_index-1:
+            middle_value = key(iterable[middle +1])
+            if middle_value == target:
+                middle +=1
+                
+        return middle
+    elif middle_value < target:
+        left_index = middle +1
+    else:
+        right_index = middle
+
+    return deep_b_search(left_index, right_index, iterable, target, key)
+def b_search(left_index : int, right_index : int, iterable, target, key):
+    if not iterable[left_index:right_index]:
+        return None
+    middle =  ((right_index - left_index) //2) + left_index
+    # if key: middle_value = key(iterable[middle]) 
+    # else: middle_value = iterable[middle]
+    middle_value = key(iterable[middle]) 
+    if middle_value == target:
+        return middle
+    elif middle_value < target:
+        left_index = middle +1
+    else:
+        right_index = middle -1
+
+    return b_search(left_index, right_index, iterable, target, key)
+
+def get_second_element_as_int(iterable):
+    return int(iterable[1])
+
+def binary_search(iterable, target, key= int, uptoLast= False):
+
+    if uptoLast:
+        return deep_b_search(0, len(iterable), iterable, target, key)
+    else:
+        return b_search(0,len(iterable), iterable, target, key)
+
+
 
 def create_network(file_name : str) -> list[tuple[int, list[int]]]:
     '''(str)->list of tuples where each tuple has 2 elements the first is int and the second is list of int
@@ -19,17 +78,59 @@ def create_network(file_name : str) -> list[tuple[int, list[int]]]:
 
     # YOUR CODE GOES HERE
     network_lenght = friends.__next__()
-    current_user = -1
-    current_friends = []
-    for connection in friends:
-        #If the user changed then update the current user variable, I am not sure if this variable is usefull
+    current_user : int = -1
+    current_friends : list = []
+    queue = []
+    for connection  in friends:
+        #If the user changed then update the current user variable
+        #The goal is to only push the network on new users
         if int(connection[0]) > current_user:
-            current_user = connection[0]
-        current_friends.append(connection[1])
-        
-        
 
-    
+            #First add the friends we found along the way
+            if current_friends:
+                network.append((current_user, current_friends))
+
+            current_user = int(connection[0])
+            current_friends = []
+            #Then unload the queue
+            if queue:
+                
+
+                active_in_queue = True
+                while active_in_queue:
+                    if int(queue[0][1]) <= current_user:
+                        if int(queue[0][1]) == current_user:
+                            current_friends.append(int(queue.pop(0)[0]))
+
+                        else:
+                            print(f"ALERT FOR THE ELEMENT {queue.pop(0)}")
+                            
+                    else : active_in_queue = False
+                    if not queue: active_in_queue = False
+
+
+                    
+
+
+
+        current_friends.append(int(connection[1]))
+        destination = binary_search(queue, get_second_element_as_int(connection), key=get_second_element_as_int, uptoLast=True)
+
+        queue.insert(destination +1, connection)
+    if current_friends:
+        network.append((current_user, current_friends))
+    current_friends = []
+    for reverse_connection in queue:
+        if int(reverse_connection[1]) > current_user:
+            if current_friends:
+                network.append((current_user, current_friends))
+            current_user = int(reverse_connection[1])
+            current_friends = []
+        
+        current_friends.append(int(reverse_connection[0]))
+
+    network.append((current_user, current_friends))
+  
     return network
 
 def getCommonFriends(user1 : int, user2 : int, network : list[tuple[int, list[int]]]) -> list:
@@ -191,5 +292,11 @@ common=getCommonFriends(uid1,uid2,net)
 for item in common:
     print(item, end=" ")
 
-    
-create_network(file_name)
+files = ["net1.txt", "net2.txt", "net3.txt", "huge.txt", "big.txt"]
+expected_outputs = [[(0, [1, 2, 3]), (1, [0, 4, 6, 7, 9]), (2, [0, 3, 6, 8, 9]), (3, [0, 2, 8, 9]), (4, [1, 6, 7, 8]),(5, [9]), (6, [1, 2, 4, 8]), (7, [1, 4, 8]), (8, [2, 3, 4, 6, 7]), (9, [1, 2, 3, 5])], [(0, [1, 2, 3, 4, 5, 6, 7, 8, 9]), (1, [0, 4, 6, 7, 9]), (2, [0, 3, 6,8, 9]), (3, [0, 2, 8, 9]), (4, [0, 1, 6, 7, 8]),
+(5, [0, 9]), (6, [0, 1, 2, 4, 8]), (7, [0, 1, 4, 8]), (8, [0, 2, 3, 4, 6, 7]), (9, [0, 1, 2, 3, 5])], [(0, [1, 2, 3, 4, 5, 6, 7, 8, 9]), (1, [0, 4, 6, 7, 9]), (2, [0, 3, 6,8, 9]), (3, [0, 2, 8, 9]), (4, [0, 1, 6, 7, 8]),
+(5, [0, 9]), (6, [0, 1, 2, 4, 8]), (7, [0, 1, 4, 8]), (8, [0, 2, 3, 4, 6, 7]), (9, [0, 1, 2, 3, 5]),
+(100, [112]), (112, [100, 114]), (114, [112])]]
+for i in range(3):
+    pass
+    print(test(create_network, expected_outputs[i], files[i]))
