@@ -35,6 +35,7 @@ def deep_b_search(left_index : int, right_index : int, iterable, target, key):
         right_index = middle
 
     return deep_b_search(left_index, right_index, iterable, target, key)
+
 def b_search(left_index : int, right_index : int, iterable, target, key):
     if not iterable[left_index:right_index]:
         return None
@@ -70,6 +71,7 @@ def add_friends_from_queue(queue : list[str],network : list[tuple[int, list[int]
             tmp_friends.append(int(queue.pop(0)[0 + int(reverse)]))
         else: looping = False
     destination = binary_search(network, tmp_user, key=get_first_element, uptoLast=True)
+    #Using insert here wont ruin the time complexity beecause there generally is only one user to be added at a time from the queue
     network.insert(destination +1,(tmp_user, tmp_friends))
     
         
@@ -164,6 +166,9 @@ def create_network(file_name : str) -> list[tuple[int, list[int]]]:
     print(f"time elapsed: {time.time() - start_time}")
     return network
 
+def getFriends(user : int, network : list[tuple[int, list[int]]] )-> tuple[int]:
+    return tuple(network[binary_search(network, user, key=get_first_element)][1])
+
 def getCommonFriends(user1 : int, user2 : int, network : list[tuple[int, list[int]]]) -> list:
     '''(int, int, 2D list) ->list
     Precondition: user1 and user2 IDs in the network. 2D list sorted by the IDs, 
@@ -173,8 +178,8 @@ def getCommonFriends(user1 : int, user2 : int, network : list[tuple[int, list[in
     common=[]
     
     # YOUR CODE GOES HERE
-    user1_friends = network[binary_search(network, user1, key=get_first_element)][1]
-    user2_friends = network[binary_search(network, user2, key=get_first_element)][1]
+    user1_friends = getFriends(user1, network)
+    user2_friends = getFriends(user2, network)
 
     left_pointer = 0
     right_pointer = 0
@@ -191,7 +196,34 @@ def getCommonFriends(user1 : int, user2 : int, network : list[tuple[int, list[in
 
     return common
 
-    
+def NthConnection(friends : list[int], n : int, network : list[tuple[int, list[int]]], current_connections : tuple[int] , doNotConsider : tuple[int] ) -> list[tuple[int], tuple[int]]:
+    '''(int, int, 2D list) ->int
+    Precondition: user ID in the network. 2D list sorted by the IDs, 
+    and friends of user
+    Given a 2D-list for friendship network, returns the ID of the n-th connection of user
+    That list excludes the user himself and it's friends or anyone encountered before
+    super efficient can go up to 4 easily
+    '''
+    if n == 1:
+        return current_connections + tuple(friends), doNotConsider
+    else:
+        for friend in friends:
+            # if friend not in doNotConsider:
+            #     doNotConsider.append(friend)    ~~> ruins efficiency
+            current_connections, doNotConsider = NthConnection(getFriends(friend, network), n-1, network, current_connections, doNotConsider + (friend,))
+
+        return current_connections, doNotConsider
+def getNthConnections(user : int, n : int, network : list[tuple[int, list[int]]]) -> list[int]:
+    '''(int, int, 2D list) -> list
+    Precondition: user ID in the network. 2D list sorted by the IDs, 
+    and friends of user
+    Given a 2D-list for friendship network, returns the sorted list of n-th connections of user
+    That list excludes the user himself and it's friends or anyone encountered before
+    '''
+    connections, blacklist = NthConnection(getFriends(user, network), n, network, tuple(),(user,))
+
+    connections, blacklist = sorted(connections), sorted(blacklist) #connections, list(blacklist)connections.sort()
+    return connections, blacklist   
 def recommend(user, network : list[tuple[int, list[int]]]) -> int | None:
     '''(int, 2Dlist)->int or None
     Given a 2D-list for friendship network, returns None if there is no other person
@@ -204,10 +236,54 @@ def recommend(user, network : list[tuple[int, list[int]]]) -> int | None:
     return the one with the smallest ID. '''
 
     # YOUR CODE GOES HERE
-    pass
+    max_friends = 0
+    max_friends_user = None
+    connections, blacklist = getNthConnections(user, 2, network)
+    blacklist_pointer = 0
+    current_friends_count = 0
+    current_user_pointer = 0
+    current_user = connections[current_user_pointer]
+    blacklisted :bool = current_user == blacklist[blacklist_pointer]
 
-    
 
+    while connections[current_user_pointer] > blacklist[blacklist_pointer] and blacklist_pointer < len(blacklist)- 1:
+        blacklist_pointer += 1
+        if blacklist[blacklist_pointer] == connections[current_user_pointer]:
+            blacklisted = True
+            blacklist_pointer += 1
+    #example of connections: [0, 0, 0, 0, 0, 1, 2, 2, 3, 6, 6, 6, 8, 12]
+    #example of blacklist: [0, 1, 2, 3, 8]
+    #return 6 because it appears 3 times
+    while current_user_pointer < len(connections):
+        #if we have the same guy as last time
+        if connections[current_user_pointer] == current_user:
+            if not blacklisted:
+                current_friends_count += 1
+            current_user_pointer += 1
+        else:
+            blacklisted = False
+            if connections[current_user_pointer] == blacklist[blacklist_pointer]:
+                blacklisted = True
+                if blacklist_pointer < len(blacklist) - 1: blacklist_pointer += 1
+
+            while connections[current_user_pointer] > blacklist[blacklist_pointer] and blacklist_pointer < len(blacklist)- 1:
+                blacklist_pointer += 1
+                if blacklist[blacklist_pointer] == connections[current_user_pointer]:
+                    blacklisted = True
+                    if blacklist_pointer < len(blacklist) - 1: blacklist_pointer += 1
+            
+            if current_friends_count > max_friends:
+                max_friends = current_friends_count
+                max_friends_user = current_user
+            current_user = connections[current_user_pointer]
+            current_user_pointer += 1
+            current_friends_count = int(not blacklisted)
+
+    if current_friends_count > max_friends:
+        max_friends = current_friends_count
+        max_friends_user = current_user
+
+    return max_friends_user
 
 def k_or_more_friends(network : list[tuple[int, list[int]]], k : int) -> int:
     '''(2Dlist,int)->int
@@ -215,7 +291,11 @@ def k_or_more_friends(network : list[tuple[int, list[int]]], k : int) -> int:
     returns the number of users who have at least k friends in the network
     Precondition: k is non-negative'''
     # YOUR CODE GOES HERE
-    pass
+    k_or_more = 0
+    for user in network:
+        if len(user[1]) >= k:
+            k_or_more += 1
+    return k_or_more
  
 
 def maximum_num_friends(network : list[tuple[int, list[int]]]) -> int:
@@ -223,16 +303,21 @@ def maximum_num_friends(network : list[tuple[int, list[int]]]) -> int:
     Given a 2D-list for friendship network,
     returns the maximum number of friends any user in the network has.
     '''
-    # YOUR CODE GOES HERE
-    pass
-    
+    return len(max(network, key=lambda x: len(x[1]))[1])
 
 def people_with_most_friends(network : list[tuple[int, list[int]]]) -> list[int]:
     '''(2Dlist)->1D list
     Given a 2D-list for friendship network, returns a list of people (IDs) who have the most friends in network.'''
     max_friends=[]
+    current_max = 0
     # YOUR CODE GOES HERE
-    return    max_friends
+    for user in network:
+        if len(user[1]) == current_max:
+            max_friends.append(user[0])
+        elif len(user[1]) > current_max:
+            current_max = len(user[1])
+            max_friends = [user[0]]
+    return max_friends
 
 
 def average_num_friends(network : list[tuple[int, list[int]]]) -> float:
@@ -240,7 +325,11 @@ def average_num_friends(network : list[tuple[int, list[int]]]) -> float:
     Returns an average number of friends overs all users in the network'''
 
     # YOUR CODE GOES HERE
-    pass
+    total = 0
+    for user in network:
+        total += len(user[1])
+
+    return total/len(network)
     
 
 def knows_everyone(network : list[tuple[int, list[int]]]) ->bool:
@@ -250,7 +339,10 @@ def knows_everyone(network : list[tuple[int, list[int]]]) ->bool:
     and False otherwise'''
     
     # YOUR CODE GOES HERE
-    pass
+    for user in network:
+        if len(user[1]) == len(network) - 1:
+            return True
+    return False
 
 
 ####### CHATTING WITH USER CODE:
@@ -338,22 +430,23 @@ file_name=get_file_name()
 net=create_network(file_name)
 
 print("\nFirst general statistics about the social network:\n")
-tests()
+
 print("This social network has", len(net), "people/users.")
 print("In this social network the maximum number of friends that any one person has is "+str(maximum_num_friends(net))+".")
 print("The average number of friends is "+str(average_num_friends(net))+".")
 mf=people_with_most_friends(net)
-print("There are", len(mf), "people with "+str(maximum_num_friends(net))+" friends and here are their IDs:", end=" ")
+print("There is" if len(mf)==1 else "There are", len(mf), "person with "+str(maximum_num_friends(net))+" friends and here is his/her ID:" if len(mf)==1 else "people with "+str(maximum_num_friends(net))+" or more friends and here are their IDs:", end=" ")
 for item in mf:
     print(item, end=" ")
 
 print("\n\nI now pick a number at random.", end=" ")
 k=random.randint(0,len(net)//4)
+k_or_more = k_or_more_friends(net,k)
 print("\nThat number is: "+str(k)+". Let's see how many people has at least that many friends.")
-print("There is", k_or_more_friends(net,k), "people with", k, "or more friends")
+print("There is" if k_or_more==1 else "There are", k_or_more, "person with" if k_or_more==1 else "people with", k, "or more friends")
 
 if knows_everyone(net):
-    print("\nThere at least one person that knows everyone.")
+    print("\nThere is at least one person that knows everyone.")
 else:
     print("\nThere is nobody that knows everyone.")
 
@@ -379,7 +472,7 @@ for item in common:
     print(item, end=" ")
 
 
-
+input("\n\nEnd of program, press any key to exit.")
 
 
 
